@@ -12,6 +12,12 @@ Das vollständige Produkt- und Architektur-Konzept findest du in
 - **Phase 0 (Scaffold):** Next.js 15 + TypeScript + Tailwind v4 ✅
 - **Phase 1 (M1 – KI-Listing aus Foto):** MVP ✅ – Foto hochladen → Titel, Beschreibung,
   Marke, Größe, Kategorie, Zustand, Hashtags und Preisvorschlag.
+- **Phase 2:**
+  - **M3 – Preisvorschläge** ✅ – Preisrechner (`/preise`): Merkmale → KI-Preisspanne mit
+    Konfidenz, hinter `PriceProvider`-Interface (echte Vinted-Vergleichsdaten als späterer
+    Provider einsteckbar).
+  - **M4 – Finanzübersicht** ✅ – Dashboard (`/finanzen`): Inventar pflegen, Verkäufe
+    melden, Kennzahlen (Umsatz, Gewinn, Kosten, Wareneinsatz, Lagerwert, ROI).
 
 ## Setup
 
@@ -28,9 +34,16 @@ Benötigt einen Anthropic API-Key (`ANTHROPIC_API_KEY`). Das Modell ist über
 
 | Pfad | Zweck |
 |------|-------|
-| `app/page.tsx` | Upload-UI + Listing-Anzeige |
-| `app/api/listing/route.ts` | API-Route: nimmt Foto entgegen, ruft die KI |
-| `lib/listing.ts` | M1-Kern: Vision-LLM → strukturiertes Listing-JSON |
+| `app/page.tsx` | Upload-UI + Listing-Anzeige (M1) |
+| `app/preise/page.tsx` | Preisrechner-UI (M3) |
+| `app/finanzen/page.tsx` | Finanz-Dashboard (M4) |
+| `app/api/listing/route.ts` | Foto → KI-Listing |
+| `app/api/price/route.ts` | Merkmale → Preisvorschlag |
+| `app/api/items/...` | Inventar (CRUD) + Verkauf melden |
+| `lib/listing.ts` | M1-Kern: Vision-LLM → Listing-JSON |
+| `lib/pricing.ts` | M3-Kern: `PriceProvider` (LLM-Schätzung) |
+| `lib/store.ts` | M4: datei-basierter Store (Postgres-Ziel kapselt) |
+| `lib/finance.ts` | M4: Kennzahlen-Berechnung |
 | `docs/KONZEPT.md` | Produkt- & Architektur-Konzept |
 
 ## Skripte
