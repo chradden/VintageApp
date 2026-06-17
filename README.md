@@ -20,7 +20,11 @@ Das vollständige Produkt- und Architektur-Konzept findest du in
   - **M4 – Finanzübersicht** ✅ – Dashboard (`/finanzen`): Inventar, Verkäufe, Kennzahlen
     (Umsatz, Gewinn, Kosten, Wareneinsatz, Lagerwert, ROI).
 - **Phase 3 (M2 – Getragen-Look-Fotos):** ✅ – aus einem Flat-Lay ein „getragen"
-  aussehendes Bild via Replicate Virtual Try-On, hinter `ImageProvider`-Interface.
+  aussehendes Bild via Replicate Image-Edit (FLUX Kontext), hinter `ImageProvider`-Interface.
+  Kein Modellfoto nötig.
+- **Phase 4 (M5 – Produktfindung):** ✅ – Bewertungs-Engine (`/finden`): Kandidaten werden
+  gegen die M3-Marktpreis-Schätzung bewertet (Marge + Deal-Einstufung), hinter
+  `DealSource`-Interface. **Kein Live-Crawler** – siehe rechtlicher Hinweis unten.
 
 ---
 
@@ -61,16 +65,14 @@ cp .env.example .env
 | `ANTHROPIC_API_KEY` | M1, M3 | API-Key von [console.anthropic.com](https://console.anthropic.com/) → *API Keys*. |
 | `ANTHROPIC_MODEL` | optional | Modell-Override. Default `claude-opus-4-8`; günstiger/schneller: `claude-sonnet-4-6`. |
 | `REPLICATE_API_TOKEN` | M2 | Token von [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens). |
-| `TRYON_MODEL_IMAGE_URL` | M2 | Öffentlich erreichbare URL eines Personen-/Modellfotos. Das Try-On-Modell (IDM-VTON) projiziert das Kleidungsstück auf diese Person. |
-| `REPLICATE_TRYON_MODEL` | optional | Try-On-Modell-Slug. Default `cuuupid/idm-vton`. |
+| `REPLICATE_WORNLOOK_MODEL` | optional | Bild-Modell-Slug. Default `black-forest-labs/flux-kontext-pro`. |
 
 **Minimalstart:** Nur `ANTHROPIC_API_KEY` setzen – dann funktionieren KI-Listing (M1),
-Preisrechner (M3) und die komplette Finanzübersicht (M4). M2 zeigt einen klaren Hinweis,
-solange Replicate nicht konfiguriert ist.
+Preisrechner (M3), Finanzübersicht (M4) und Produktfindung (M5). M2 zeigt einen klaren
+Hinweis, solange Replicate nicht konfiguriert ist.
 
-> Hinweis zu M2: IDM-VTON benötigt zwingend ein **Personenfoto** (`TRYON_MODEL_IMAGE_URL`),
-> auf das das Kleidungsstück „angezogen" wird. Lade dafür ein neutrales Modellfoto an einen
-> öffentlich erreichbaren Ort (z. B. Object Storage) und trage die URL ein.
+> Hinweis zu M2: Das Image-Edit-Modell (FLUX Kontext) rendert das Kleidungsstück direkt aus
+> dem Flat-Lay „getragen" – es ist **kein** Modellfoto nötig.
 
 ### 5. Entwicklungsserver starten
 
@@ -83,6 +85,7 @@ App öffnen: **http://localhost:3000**
 - `/` – KI-Listing aus Foto (M1) + Getragen-Look (M2)
 - `/preise` – Preisrechner (M3)
 - `/finanzen` – Finanzübersicht (M4)
+- `/finden` – Produktfindung / Deal-Bewertung (M5)
 
 ### 6. Produktion
 
@@ -112,16 +115,19 @@ npm run start    # Produktionsserver (Default: Port 3000)
 | `app/page.tsx` | Upload-UI + Listing-Anzeige (M1) + Getragen-Look (M2) |
 | `app/preise/page.tsx` | Preisrechner-UI (M3) |
 | `app/finanzen/page.tsx` | Finanz-Dashboard (M4) |
+| `app/finden/page.tsx` | Produktfindung / Deal-Bewertung (M5) |
 | `app/components/` | Nav, WornLook |
 | `app/api/listing/route.ts` | Foto → KI-Listing |
 | `app/api/price/route.ts` | Merkmale → Preisvorschlag |
 | `app/api/worn-look/route.ts` | Flat-Lay → Getragen-Look-Bild |
 | `app/api/items/...` | Inventar (CRUD) + Verkauf melden |
+| `app/api/deals/evaluate/route.ts` | Kandidaten → Deal-Bewertung |
 | `lib/listing.ts` | M1: Vision-LLM → Listing-JSON |
 | `lib/pricing.ts` | M3: `PriceProvider` (LLM-Schätzung) |
-| `lib/imagegen.ts` | M2: `ImageProvider` (Replicate Try-On) |
+| `lib/imagegen.ts` | M2: `ImageProvider` (Replicate Image-Edit) |
 | `lib/store.ts` | M4: datei-basierter Store (`.data/store.json`) |
 | `lib/finance.ts` | M4: Kennzahlen-Berechnung |
+| `lib/deals.ts` | M5: Deal-Bewertung gegen M3-Marktpreis |
 | `docs/KONZEPT.md` | Produkt- & Architektur-Konzept |
 
 ---
@@ -134,12 +140,22 @@ auf PostgreSQL/Prisma (Konzept-Ziel) betrifft nur diese Datei.
 
 ---
 
+## Rechtlicher Hinweis zur Produktfindung (M5)
+
+M5 enthält bewusst **keinen** automatischen Vinted-Crawler. Automatisiertes Scraping bzw.
+die Nutzung der privaten Vinted-API berührt die Vinted-AGB und ist erst nach rechtlicher
+Bewertung zulässig (siehe `docs/KONZEPT.md` §5). Die mitgelieferte Bewertungs-Engine
+arbeitet ausschließlich mit **manuell eingegebenen** Kandidaten. Eine AGB-konforme
+Datenquelle kann später über das `DealSource`-Interface (`lib/deals.ts`) ergänzt werden.
+
+---
+
 ## Fehlersuche
 
 | Symptom | Ursache / Lösung |
 |---------|------------------|
 | `ANTHROPIC_API_KEY ist nicht gesetzt` | `.env` anlegen und Key eintragen, Server neu starten. |
-| `Bild-KI nicht konfiguriert` (M2) | `REPLICATE_API_TOKEN` **und** `TRYON_MODEL_IMAGE_URL` setzen. |
-| M2 schlägt fehl / leeres Bild | Modellfoto-URL nicht öffentlich erreichbar, oder Replicate-Modell ausgelastet. |
+| `Bild-KI nicht konfiguriert` (M2) | `REPLICATE_API_TOKEN` setzen. |
+| M2 schlägt fehl / leeres Bild | Replicate-Modell ausgelastet, Guthaben aufgebraucht, oder Modell-Slug ungültig. |
 | Port 3000 belegt | Anderen Port nutzen: `PORT=3100 npm run dev`. |
 | Änderungen an `.env` greifen nicht | Server stoppen und neu starten (ENV wird beim Start gelesen). |

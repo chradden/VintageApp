@@ -1,14 +1,13 @@
-// Modul M2 – Getragen-Look-Fotos. Wie bei M3 hinter einem Provider-Interface,
-// damit der Bild-KI-Anbieter austauschbar bleibt. Standard: Replicate Virtual
-// Try-On (IDM-VTON), das ein Kleidungsstück auf ein Modell-Foto "anzieht".
+// Modul M2 – Getragen-Look-Fotos. Hinter einem Provider-Interface, damit der
+// Bild-KI-Anbieter austauschbar bleibt. Standard: Replicate Image-Edit
+// (FLUX Kontext) – erzeugt aus dem Flat-Lay ein "getragen" aussehendes Bild,
+// OHNE dass ein Modellfoto nötig ist.
 
 export interface WornLookInput {
   /** Flat-Lay des Kleidungsstücks als Data-URI (data:image/...;base64,...). */
   garmentDataUri: string;
   /** Kurze Beschreibung des Kleidungsstücks (verbessert das Ergebnis). */
   description?: string;
-  /** Körperregion für das Try-On-Modell. */
-  category?: "upper_body" | "lower_body" | "dresses";
 }
 
 export interface WornLookResult {
@@ -22,20 +21,31 @@ export interface ImageProvider {
 
 const REPLICATE_API = "https://api.replicate.com/v1";
 
+function buildPrompt(description?: string): string {
+  const item = description?.trim() ? description.trim() : "dieses Kleidungsstück";
+  return [
+    `Realistic e-commerce photo of ${item} being worn by a person,`,
+    "natural studio lighting, clean neutral background, full or upper body as appropriate.",
+    "Keep the garment's exact color, pattern, fabric and details unchanged.",
+  ].join(" ");
+}
+
 /**
- * Replicate-basierter Virtual-Try-On-Provider.
+ * Replicate-basierter Provider (Image-Edit, Default FLUX Kontext).
  *
  * Benötigt:
  *  - REPLICATE_API_TOKEN: API-Token von replicate.com
- *  - TRYON_MODEL_IMAGE_URL: öffentlich erreichbares Foto einer Person/eines Modells,
- *    auf das das Kleidungsstück projiziert wird (IDM-VTON braucht ein Personenbild).
- *  - REPLICATE_TRYON_MODEL (optional): Modell-Slug, Default "cuuupid/idm-vton".
+ *  - REPLICATE_WORNLOOK_MODEL (optional): Modell-Slug,
+ *    Default "black-forest-labs/flux-kontext-pro".
+ *
+ * Es ist KEIN Modellfoto nötig – das Modell rendert das Kleidungsstück
+ * "getragen" direkt aus dem Flat-Lay.
  */
-export class ReplicateTryOnProvider implements ImageProvider {
+export class ReplicateWornLookProvider implements ImageProvider {
   constructor(
     private token: string,
-    private modelImageUrl: string,
-    private model = process.env.REPLICATE_TRYON_MODEL ?? "cuuupid/idm-vton",
+    private model = process.env.REPLICATE_WORNLOOK_MODEL ??
+      "black-forest-labs/flux-kontext-pro",
   ) {}
 
   async generateWornLook(input: WornLookInput): Promise<WornLookResult> {
@@ -49,10 +59,9 @@ export class ReplicateTryOnProvider implements ImageProvider {
       },
       body: JSON.stringify({
         input: {
-          human_img: this.modelImageUrl,
-          garm_img: input.garmentDataUri,
-          garment_des: input.description ?? "Kleidungsstück",
-          category: input.category ?? "upper_body",
+          prompt: buildPrompt(input.description),
+          input_image: input.garmentDataUri,
+          output_format: "jpg",
         },
       }),
     });
@@ -86,7 +95,7 @@ export class ReplicateTryOnProvider implements ImageProvider {
     const imageUrl = Array.isArray(pred.output) ? pred.output[0] : pred.output;
     if (!imageUrl) throw new Error("Keine Bild-URL im Ergebnis.");
 
-    return { imageUrl, provider: "Replicate · Virtual Try-On" };
+    return { imageUrl, provider: "Replicate · FLUX Kontext" };
   }
 }
 
@@ -103,12 +112,11 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Liefert den konfigurierten Provider oder null, wenn die nötigen ENV-Variablen
- * fehlen (dann gibt die Route eine hilfreiche Meldung zurück).
+ * Liefert den konfigurierten Provider oder null, wenn REPLICATE_API_TOKEN fehlt
+ * (dann gibt die Route eine hilfreiche Meldung zurück).
  */
 export function resolveImageProvider(): ImageProvider | null {
   const token = process.env.REPLICATE_API_TOKEN;
-  const modelImageUrl = process.env.TRYON_MODEL_IMAGE_URL;
-  if (!token || !modelImageUrl) return null;
-  return new ReplicateTryOnProvider(token, modelImageUrl);
+  if (!token) return null;
+  return new ReplicateWornLookProvider(token);
 }

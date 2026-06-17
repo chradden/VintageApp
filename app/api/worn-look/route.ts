@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Bild-KI nicht konfiguriert. Bitte REPLICATE_API_TOKEN und TRYON_MODEL_IMAGE_URL setzen (siehe README / .env.example).",
+          "Bild-KI nicht konfiguriert. Bitte REPLICATE_API_TOKEN setzen (siehe README / .env.example).",
       },
       { status: 503 },
     );

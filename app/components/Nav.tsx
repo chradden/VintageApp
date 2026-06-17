@@ -17,6 +17,9 @@ export default function Nav() {
           <Link href="/finanzen" className="hover:text-neutral-900">
             Finanzen
           </Link>
+          <Link href="/finden" className="hover:text-neutral-900">
+            Produktfindung
+          </Link>
         </div>
       </div>
     </nav>
