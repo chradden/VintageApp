@@ -1,10 +1,161 @@
 # VintageApp
 
-VintageApp ist das Konzept für ein integriertes „Professional Reseller Toolkit" für
-Vinted: KI-gestütztes Listing aus Fotos, getragen aussehende Produktbilder,
-datenbasierte Preisvorschläge und eine Finanzübersicht — gebündelt in einer Web-App.
+VintageApp ist ein integriertes „Professional Reseller Toolkit" für Vinted: KI-gestütztes
+Listing aus Fotos, getragen aussehende Produktbilder, datenbasierte Preisvorschläge und eine
+Finanzübersicht – gebündelt in einer Web-App.
 
 Das vollständige Produkt- und Architektur-Konzept findest du in
 **[`docs/KONZEPT.md`](docs/KONZEPT.md)**.
 
-> Status: Konzeptphase (noch kein Code). Zielstack: Next.js + TypeScript.
+---
+
+## Status
+
+- **Phase 0 (Scaffold):** Next.js 15 + TypeScript + Tailwind v4 ✅
+- **Phase 1 (M1 – KI-Listing aus Foto):** Foto → Titel, Beschreibung, Marke, Größe,
+  Kategorie, Zustand, Hashtags, Preisvorschlag ✅
+- **Phase 2:**
+  - **M3 – Preisvorschläge** ✅ – Preisrechner (`/preise`): Merkmale → KI-Preisspanne mit
+    Konfidenz, hinter `PriceProvider`-Interface.
+  - **M4 – Finanzübersicht** ✅ – Dashboard (`/finanzen`): Inventar, Verkäufe, Kennzahlen
+    (Umsatz, Gewinn, Kosten, Wareneinsatz, Lagerwert, ROI).
+- **Phase 3 (M2 – Getragen-Look-Fotos):** ✅ – aus einem Flat-Lay ein „getragen"
+  aussehendes Bild via Replicate Image-Edit (FLUX Kontext), hinter `ImageProvider`-Interface.
+  Kein Modellfoto nötig.
+- **Phase 4 (M5 – Produktfindung):** ✅ – Bewertungs-Engine (`/finden`): Kandidaten werden
+  gegen die M3-Marktpreis-Schätzung bewertet (Marge + Deal-Einstufung), hinter
+  `DealSource`-Interface. **Kein Live-Crawler** – siehe rechtlicher Hinweis unten.
+
+---
+
+## Installation
+
+### 1. Voraussetzungen
+
+- **Node.js ≥ 20** (empfohlen 22). Prüfen: `node --version`.
+  Installation z. B. über [nvm](https://github.com/nvm-sh/nvm): `nvm install 22 && nvm use 22`.
+- **npm ≥ 10** (kommt mit Node). Prüfen: `npm --version`.
+- **git** zum Klonen des Repos.
+- API-Zugänge je nach Modul (siehe Schritt 4) – für einen ersten Start genügt der
+  Anthropic-Key; M4 (Finanzen) läuft komplett ohne API-Key.
+
+### 2. Repository klonen
+
+```bash
+git clone https://github.com/chradden/vintageapp.git
+cd vintageapp
+```
+
+### 3. Abhängigkeiten installieren
+
+```bash
+npm install
+```
+
+### 4. Umgebungsvariablen konfigurieren
+
+Lege eine `.env`-Datei an (Vorlage kopieren) und trage deine Keys ein:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Pflicht für | Beschreibung |
+|----------|-------------|--------------|
+| `ANTHROPIC_API_KEY` | M1, M3 | API-Key von [console.anthropic.com](https://console.anthropic.com/) → *API Keys*. |
+| `ANTHROPIC_MODEL` | optional | Modell-Override. Default `claude-opus-4-8`; günstiger/schneller: `claude-sonnet-4-6`. |
+| `REPLICATE_API_TOKEN` | M2 | Token von [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens). |
+| `REPLICATE_WORNLOOK_MODEL` | optional | Bild-Modell-Slug. Default `black-forest-labs/flux-kontext-pro`. |
+
+**Minimalstart:** Nur `ANTHROPIC_API_KEY` setzen – dann funktionieren KI-Listing (M1),
+Preisrechner (M3), Finanzübersicht (M4) und Produktfindung (M5). M2 zeigt einen klaren
+Hinweis, solange Replicate nicht konfiguriert ist.
+
+> Hinweis zu M2: Das Image-Edit-Modell (FLUX Kontext) rendert das Kleidungsstück direkt aus
+> dem Flat-Lay „getragen" – es ist **kein** Modellfoto nötig.
+
+### 5. Entwicklungsserver starten
+
+```bash
+npm run dev
+```
+
+App öffnen: **http://localhost:3000**
+
+- `/` – KI-Listing aus Foto (M1) + Getragen-Look (M2)
+- `/preise` – Preisrechner (M3)
+- `/finanzen` – Finanzübersicht (M4)
+- `/finden` – Produktfindung / Deal-Bewertung (M5)
+
+### 6. Produktion
+
+```bash
+npm run build    # optimierten Build erzeugen
+npm run start    # Produktionsserver (Default: Port 3000)
+```
+
+---
+
+## Skripte
+
+| Befehl | Zweck |
+|--------|-------|
+| `npm run dev` | Entwicklungsserver mit Hot Reload |
+| `npm run build` | Produktions-Build |
+| `npm run start` | Produktionsserver |
+| `npm run typecheck` | TypeScript prüfen (`tsc --noEmit`) |
+| `npm run lint` | Next.js Linting |
+
+---
+
+## Projektstruktur
+
+| Pfad | Zweck |
+|------|-------|
+| `app/page.tsx` | Upload-UI + Listing-Anzeige (M1) + Getragen-Look (M2) |
+| `app/preise/page.tsx` | Preisrechner-UI (M3) |
+| `app/finanzen/page.tsx` | Finanz-Dashboard (M4) |
+| `app/finden/page.tsx` | Produktfindung / Deal-Bewertung (M5) |
+| `app/components/` | Nav, WornLook |
+| `app/api/listing/route.ts` | Foto → KI-Listing |
+| `app/api/price/route.ts` | Merkmale → Preisvorschlag |
+| `app/api/worn-look/route.ts` | Flat-Lay → Getragen-Look-Bild |
+| `app/api/items/...` | Inventar (CRUD) + Verkauf melden |
+| `app/api/deals/evaluate/route.ts` | Kandidaten → Deal-Bewertung |
+| `lib/listing.ts` | M1: Vision-LLM → Listing-JSON |
+| `lib/pricing.ts` | M3: `PriceProvider` (LLM-Schätzung) |
+| `lib/imagegen.ts` | M2: `ImageProvider` (Replicate Image-Edit) |
+| `lib/store.ts` | M4: datei-basierter Store (`.data/store.json`) |
+| `lib/finance.ts` | M4: Kennzahlen-Berechnung |
+| `lib/deals.ts` | M5: Deal-Bewertung gegen M3-Marktpreis |
+| `docs/KONZEPT.md` | Produkt- & Architektur-Konzept |
+
+---
+
+## Datenhaltung
+
+Für den MVP nutzt M4 einen **datei-basierten Store** unter `.data/store.json` (per
+`.gitignore` ausgeschlossen). Die Logik ist hinter `lib/store.ts` gekapselt – der Wechsel
+auf PostgreSQL/Prisma (Konzept-Ziel) betrifft nur diese Datei.
+
+---
+
+## Rechtlicher Hinweis zur Produktfindung (M5)
+
+M5 enthält bewusst **keinen** automatischen Vinted-Crawler. Automatisiertes Scraping bzw.
+die Nutzung der privaten Vinted-API berührt die Vinted-AGB und ist erst nach rechtlicher
+Bewertung zulässig (siehe `docs/KONZEPT.md` §5). Die mitgelieferte Bewertungs-Engine
+arbeitet ausschließlich mit **manuell eingegebenen** Kandidaten. Eine AGB-konforme
+Datenquelle kann später über das `DealSource`-Interface (`lib/deals.ts`) ergänzt werden.
+
+---
+
+## Fehlersuche
+
+| Symptom | Ursache / Lösung |
+|---------|------------------|
+| `ANTHROPIC_API_KEY ist nicht gesetzt` | `.env` anlegen und Key eintragen, Server neu starten. |
+| `Bild-KI nicht konfiguriert` (M2) | `REPLICATE_API_TOKEN` setzen. |
+| M2 schlägt fehl / leeres Bild | Replicate-Modell ausgelastet, Guthaben aufgebraucht, oder Modell-Slug ungültig. |
+| Port 3000 belegt | Anderen Port nutzen: `PORT=3100 npm run dev`. |
+| Änderungen an `.env` greifen nicht | Server stoppen und neu starten (ENV wird beim Start gelesen). |
