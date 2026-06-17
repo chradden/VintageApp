@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import type { Listing } from "@/lib/listing";
+import WornLook from "./components/WornLook";
 
 type Status = "idle" | "loading" | "done" | "error";
 
 export default function Home() {
   const [preview, setPreview] = useState<string | null>(null);
+  const [image, setImage] = useState<{ base64: string; mediaType: string } | null>(
+    null,
+  );
   const [listing, setListing] = useState<Listing | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +23,7 @@ export default function Home() {
     const dataUrl = await readAsDataUrl(file);
     setPreview(dataUrl);
     const base64 = dataUrl.split(",")[1];
+    setImage({ base64, mediaType: file.type });
 
     try {
       const res = await fetch("/api/listing", {
@@ -91,6 +96,14 @@ export default function Home() {
             {listing && <ListingView listing={listing} />}
           </div>
         </div>
+      )}
+
+      {image && (
+        <WornLook
+          imageBase64={image.base64}
+          mediaType={image.mediaType}
+          description={listing?.titel}
+        />
       )}
     </main>
   );
