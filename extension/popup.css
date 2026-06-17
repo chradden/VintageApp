@@ -1,0 +1,107 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  width: 360px;
+  margin: 0;
+  padding: 12px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: #1f2421;
+  background: #f7f6f3;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+section {
+  margin-bottom: 12px;
+}
+label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #737373;
+  margin-bottom: 4px;
+}
+input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  font-size: 13px;
+}
+input[type="file"] {
+  width: 100%;
+  margin-bottom: 8px;
+}
+button {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#generate {
+  width: 100%;
+  background: #1f2421;
+  color: #fff;
+}
+#generate:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button.link {
+  background: none;
+  color: #525252;
+  padding: 2px 6px;
+}
+.hint {
+  color: #737373;
+  font-size: 11px;
+  margin: 6px 0 0;
+}
+.field {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.field .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.field .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #737373;
+}
+.field .value {
+  margin-top: 4px;
+  white-space: pre-line;
+}
+.copy {
+  background: #e5e5e5;
+  color: #1f2421;
+  font-size: 11px;
+  padding: 3px 8px;
+}
+.price {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 8px;
+}

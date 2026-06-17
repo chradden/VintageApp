@@ -141,7 +141,17 @@ npm run start    # Produktionsserver (Default: Port 3000)
 | `lib/store.ts` | M4: datei-basierter Store (`.data/store.json`) |
 | `lib/finance.ts` | M4: Kennzahlen-Berechnung |
 | `lib/deals.ts` | M5: Deal-Bewertung gegen M3-Marktpreis |
+| `extension/` | Browser-Erweiterung (Listing-Copy-Helfer) – siehe `extension/README.md` |
 | `docs/KONZEPT.md` | Produkt- & Architektur-Konzept |
+
+---
+
+## Browser-Erweiterung (Listing-Copy-Helfer)
+
+Im Ordner `extension/` liegt eine schlanke MV3-Erweiterung (Chrome/Edge/Firefox): Foto im
+Popup wählen → die laufende VintageApp generiert das Listing → Felder mit Kopier-Buttons.
+Bewusst **ohne** automatisches Ausfüllen von Vinted (AGB-neutral). Installation per
+„Entpackte Erweiterung laden" – Details in [`extension/README.md`](extension/README.md).
 
 ---
 
