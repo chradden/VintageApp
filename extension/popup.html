@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <strong>VintageApp · Listing-Helfer</strong>
+      <button id="toggleSettings" class="link" type="button">⚙︎</button>
+    </header>
+
+    <section id="settings" hidden>
+      <label for="backendUrl">Backend-URL</label>
+      <input id="backendUrl" type="text" placeholder="http://localhost:3000" />
+      <p class="hint">URL deiner laufenden VintageApp. Standard: http://localhost:3000</p>
+    </section>
+
+    <section>
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+      <button id="generate" type="button" disabled>Listing generieren</button>
+      <p id="status" class="hint"></p>
+    </section>
+
+    <section id="result" hidden></section>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

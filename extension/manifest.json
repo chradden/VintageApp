@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "VintageApp – Listing-Helfer",
+  "version": "0.1.0",
+  "description": "Foto hochladen → KI-Listing (Titel, Beschreibung, Details, Preis) zum bequemen Kopieren für Vinted. Kein Auto-Ausfüllen.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "VintageApp Listing-Helfer"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://*/*"
+  ]
+}

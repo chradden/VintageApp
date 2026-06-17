@@ -111,6 +111,27 @@ export default function Home() {
 
 function ListingView({ listing }: { listing: Listing }) {
   const { preisvorschlag: p } = listing;
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function saveToInventory() {
+    setSaving(true);
+    const res = await fetch("/api/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        titel: listing.titel,
+        marke: listing.marke,
+        kategorie: listing.kategorie,
+        groesse: listing.groesse,
+        zustand: listing.zustand,
+        einkaufspreisEur: 0,
+      }),
+    });
+    setSaving(false);
+    if (res.ok) setSaved(true);
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -149,6 +170,18 @@ function ListingView({ listing }: { listing: Listing }) {
           </span>
         ))}
       </div>
+
+      <button
+        onClick={saveToInventory}
+        disabled={saving || saved}
+        className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40"
+      >
+        {saved
+          ? "Im Inventar gespeichert ✓"
+          : saving
+            ? "Speichere …"
+            : "Ins Inventar übernehmen"}
+      </button>
     </div>
   );
 }
