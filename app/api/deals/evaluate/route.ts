@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateDeals, type DealCandidate } from "@/lib/deals";
+import { isLlmConfigured, missingKeyMessage } from "@/lib/llm";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY ist nicht gesetzt (siehe .env.example)." },
-      { status: 500 },
-    );
+  if (!isLlmConfigured()) {
+    return NextResponse.json({ error: missingKeyMessage() }, { status: 500 });
   }
 
   let body: { candidates?: DealCandidate[] };

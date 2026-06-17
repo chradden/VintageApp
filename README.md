@@ -60,16 +60,28 @@ Lege eine `.env`-Datei an (Vorlage kopieren) und trage deine Keys ein:
 cp .env.example .env
 ```
 
+Die Text-/Vision-Module **M1, M3, M5** laufen wahlweise über **Anthropic (Claude)** oder
+**OpenRouter** (OpenAI-kompatibel, inkl. günstiger Modelle wie DeepSeek/Qwen/GLM). M2
+nutzt Replicate, M4 braucht keinen Key.
+
 | Variable | Pflicht für | Beschreibung |
 |----------|-------------|--------------|
-| `ANTHROPIC_API_KEY` | M1, M3 | API-Key von [console.anthropic.com](https://console.anthropic.com/) → *API Keys*. |
-| `ANTHROPIC_MODEL` | optional | Modell-Override. Default `claude-opus-4-8`; günstiger/schneller: `claude-sonnet-4-6`. |
+| `LLM_PROVIDER` | optional | `anthropic` (Default) oder `openrouter`. Ohne Angabe: OpenRouter, falls nur dessen Key gesetzt ist, sonst Anthropic. |
+| `ANTHROPIC_API_KEY` | M1/M3/M5 (Anthropic) | Key von [console.anthropic.com](https://console.anthropic.com/) → *API Keys*. |
+| `ANTHROPIC_MODEL` | optional | Default `claude-opus-4-8`; günstiger: `claude-sonnet-4-6`. |
+| `OPENROUTER_API_KEY` | M1/M3/M5 (OpenRouter) | Key von [openrouter.ai/keys](https://openrouter.ai/keys). |
+| `OPENROUTER_MODEL` | optional | Modell-Slug. **M1 braucht ein Vision-Modell**, z. B. `qwen/qwen-2.5-vl-72b-instruct`. Textmodelle wie `deepseek/deepseek-chat` reichen für M3/M5. |
 | `REPLICATE_API_TOKEN` | M2 | Token von [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens). |
 | `REPLICATE_WORNLOOK_MODEL` | optional | Bild-Modell-Slug. Default `black-forest-labs/flux-kontext-pro`. |
 
-**Minimalstart:** Nur `ANTHROPIC_API_KEY` setzen – dann funktionieren KI-Listing (M1),
-Preisrechner (M3), Finanzübersicht (M4) und Produktfindung (M5). M2 zeigt einen klaren
-Hinweis, solange Replicate nicht konfiguriert ist.
+**Minimalstart:** Einen LLM-Key setzen (`ANTHROPIC_API_KEY` **oder** `OPENROUTER_API_KEY`)
+– dann funktionieren KI-Listing (M1), Preisrechner (M3), Finanzübersicht (M4) und
+Produktfindung (M5). M2 zeigt einen Hinweis, solange Replicate nicht konfiguriert ist.
+
+> **OpenRouter & günstige (chinesische) Modelle:** Setze `OPENROUTER_API_KEY` und
+> `OPENROUTER_MODEL`. Für M3/M5 (nur Text) eignen sich z. B. `deepseek/deepseek-chat` oder
+> `qwen/qwen-2.5-72b-instruct`. Für **M1** muss das Modell **Bilder verstehen** – nutze ein
+> Vision-Modell wie `qwen/qwen-2.5-vl-72b-instruct`, sonst schlägt die Foto-Analyse fehl.
 
 > Hinweis zu M2: Das Image-Edit-Modell (FLUX Kontext) rendert das Kleidungsstück direkt aus
 > dem Flat-Lay „getragen" – es ist **kein** Modellfoto nötig.
@@ -122,6 +134,7 @@ npm run start    # Produktionsserver (Default: Port 3000)
 | `app/api/worn-look/route.ts` | Flat-Lay → Getragen-Look-Bild |
 | `app/api/items/...` | Inventar (CRUD) + Verkauf melden |
 | `app/api/deals/evaluate/route.ts` | Kandidaten → Deal-Bewertung |
+| `lib/llm.ts` | LLM-Abstraktion: Anthropic **oder** OpenRouter (JSON-Ausgabe) |
 | `lib/listing.ts` | M1: Vision-LLM → Listing-JSON |
 | `lib/pricing.ts` | M3: `PriceProvider` (LLM-Schätzung) |
 | `lib/imagegen.ts` | M2: `ImageProvider` (Replicate Image-Edit) |
@@ -154,7 +167,8 @@ Datenquelle kann später über das `DealSource`-Interface (`lib/deals.ts`) ergä
 
 | Symptom | Ursache / Lösung |
 |---------|------------------|
-| `ANTHROPIC_API_KEY ist nicht gesetzt` | `.env` anlegen und Key eintragen, Server neu starten. |
+| `… API_KEY ist nicht gesetzt` | LLM-Key in `.env` eintragen (`ANTHROPIC_API_KEY` oder `OPENROUTER_API_KEY`), Server neu starten. |
+| M1 (Foto) schlägt mit OpenRouter fehl | Gewähltes `OPENROUTER_MODEL` ist nicht vision-fähig → Vision-Modell wählen (z. B. `qwen/qwen-2.5-vl-72b-instruct`). |
 | `Bild-KI nicht konfiguriert` (M2) | `REPLICATE_API_TOKEN` setzen. |
 | M2 schlägt fehl / leeres Bild | Replicate-Modell ausgelastet, Guthaben aufgebraucht, oder Modell-Slug ungültig. |
 | Port 3000 belegt | Anderen Port nutzen: `PORT=3100 npm run dev`. |
