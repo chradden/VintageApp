@@ -107,6 +107,9 @@ npm run build    # optimierten Build erzeugen
 npm run start    # Produktionsserver (Default: Port 3000)
 ```
 
+Für dauerhaften Betrieb auf einem eigenen Server (pm2, nginx, HTTPS) siehe
+**[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)**.
+
 ---
 
 ## Skripte
