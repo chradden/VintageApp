@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveImageProvider } from "@/lib/imagegen";
+import { requireApiKey } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiKey(req);
+  if (unauthorized) return unauthorized;
+
   const provider = resolveImageProvider();
   if (!provider) {
     return NextResponse.json(

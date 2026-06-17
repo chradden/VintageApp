@@ -66,6 +66,7 @@ nutzt Replicate, M4 braucht keinen Key.
 
 | Variable | Pflicht für | Beschreibung |
 |----------|-------------|--------------|
+| `APP_API_KEY` | optional (Deploy) | Schützt die KI-Routen. Wenn gesetzt, müssen Web-UI/Extension den Key senden. Lokal leer lassen. |
 | `LLM_PROVIDER` | optional | `anthropic` (Default) oder `openrouter`. Ohne Angabe: OpenRouter, falls nur dessen Key gesetzt ist, sonst Anthropic. |
 | `ANTHROPIC_API_KEY` | M1/M3/M5 (Anthropic) | Key von [console.anthropic.com](https://console.anthropic.com/) → *API Keys*. |
 | `ANTHROPIC_MODEL` | optional | Default `claude-opus-4-8`; günstiger: `claude-sonnet-4-6`. |
@@ -143,6 +144,24 @@ npm run start    # Produktionsserver (Default: Port 3000)
 | `lib/deals.ts` | M5: Deal-Bewertung gegen M3-Marktpreis |
 | `extension/` | Browser-Erweiterung (Listing-Copy-Helfer) – siehe `extension/README.md` |
 | `docs/KONZEPT.md` | Produkt- & Architektur-Konzept |
+
+---
+
+## Zugriffsschutz (für Deployments)
+
+Solange `APP_API_KEY` **nicht** gesetzt ist (lokale Entwicklung), sind alle Routen offen.
+Wird die App deployt, sollte `APP_API_KEY` gesetzt werden – dann verlangen die KI-Routen
+(`/api/listing`, `/api/price`, `/api/worn-look`, `/api/deals/evaluate`) den Header
+`x-app-key`. So kann nicht jeder dein Deployment nutzen und deine LLM-/Replicate-Credits
+verbrauchen.
+
+- **Web-UI:** Key einmalig über das 🔑-Feld oben rechts eingeben (im Browser gespeichert,
+  nicht im Bundle enthalten).
+- **Erweiterung:** Key in den Einstellungen (⚙︎) hinterlegen.
+
+> Der `APP_API_KEY` ist ein **gemeinsames Geheimnis**, das du an berechtigte Nutzer
+> weitergibst. Für echte Mehrbenutzer-Trennung wäre später ein Login-System (Auth) der
+> nächste Schritt.
 
 ---
 

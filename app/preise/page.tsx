@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PriceSuggestion } from "@/lib/pricing";
+import { authHeaders } from "@/lib/apiKey";
 
 type Status = "idle" | "loading" | "done" | "error";
 
@@ -30,7 +31,7 @@ export default function PreisePage() {
     try {
       const res = await fetch("/api/price", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(form),
       });
       const data = await res.json();

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DealCandidate, EvaluatedDeal, DealRating } from "@/lib/deals";
+import { authHeaders } from "@/lib/apiKey";
 
 type Status = "idle" | "loading" | "done" | "error";
 
@@ -33,7 +34,7 @@ export default function FindenPage() {
     try {
       const res = await fetch("/api/deals/evaluate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ candidates: valid }),
       });
       const data = await res.json();

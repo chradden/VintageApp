@@ -6,6 +6,7 @@ const els = {
   toggleSettings: document.getElementById("toggleSettings"),
   settings: document.getElementById("settings"),
   backendUrl: document.getElementById("backendUrl"),
+  apiKey: document.getElementById("apiKey"),
   file: document.getElementById("file"),
   generate: document.getElementById("generate"),
   status: document.getElementById("status"),
@@ -14,8 +15,9 @@ const els = {
 
 // --- Einstellungen (Backend-URL) -----------------------------------------
 
-chrome.storage.local.get(["backendUrl"], (data) => {
+chrome.storage.local.get(["backendUrl", "apiKey"], (data) => {
   els.backendUrl.value = data.backendUrl || DEFAULT_BACKEND;
+  els.apiKey.value = data.apiKey || "";
 });
 
 els.toggleSettings.addEventListener("click", () => {
@@ -24,6 +26,10 @@ els.toggleSettings.addEventListener("click", () => {
 
 els.backendUrl.addEventListener("change", () => {
   chrome.storage.local.set({ backendUrl: els.backendUrl.value.trim() });
+});
+
+els.apiKey.addEventListener("change", () => {
+  chrome.storage.local.set({ apiKey: els.apiKey.value.trim() });
 });
 
 // --- Datei wählen + generieren -------------------------------------------
@@ -44,10 +50,14 @@ els.generate.addEventListener("click", async () => {
     const base64 = await readBase64(file);
     const backend = (els.backendUrl.value || DEFAULT_BACKEND).replace(/\/$/, "");
 
+    const headers = { "Content-Type": "application/json" };
+    const apiKey = (els.apiKey.value || "").trim();
+    if (apiKey) headers["x-app-key"] = apiKey;
+
     setStatus("KI analysiert das Foto …");
     const res = await fetch(`${backend}/api/listing`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ imageBase64: base64, mediaType: file.type }),
     });
     const data = await res.json();

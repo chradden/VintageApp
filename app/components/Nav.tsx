@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ApiKeyField from "./ApiKeyField";
 
 export default function Nav() {
   return (
@@ -7,7 +8,7 @@ export default function Nav() {
         <Link href="/" className="font-bold tracking-tight">
           VintageApp
         </Link>
-        <div className="flex gap-4 text-sm text-neutral-600">
+        <div className="flex flex-1 gap-4 text-sm text-neutral-600">
           <Link href="/" className="hover:text-neutral-900">
             KI-Listing
           </Link>
@@ -21,6 +22,7 @@ export default function Nav() {
             Produktfindung
           </Link>
         </div>
+        <ApiKeyField />
       </div>
     </nav>
   );

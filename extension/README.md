@@ -16,7 +16,8 @@ generiert das Listing (M1) → Titel, Beschreibung, Details und Preisvorschlag w
 
 ## Nutzung
 
-1. Über das Zahnrad ⚙︎ ggf. die **Backend-URL** anpassen (Standard `http://localhost:3000`).
+1. Über das Zahnrad ⚙︎ ggf. die **Backend-URL** anpassen (Standard `http://localhost:3000`)
+   und – falls das Backend mit `APP_API_KEY` geschützt ist – den **API-Key** eintragen.
 2. Produktfoto auswählen → **„Listing generieren"**.
 3. Felder per **„Kopieren"** übernehmen und in Vinted einfügen.
 

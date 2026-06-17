@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateDeals, type DealCandidate } from "@/lib/deals";
 import { isLlmConfigured, missingKeyMessage } from "@/lib/llm";
+import { requireApiKey } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiKey(req);
+  if (unauthorized) return unauthorized;
+
   if (!isLlmConfigured()) {
     return NextResponse.json({ error: missingKeyMessage() }, { status: 500 });
   }

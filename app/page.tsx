@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Listing } from "@/lib/listing";
 import WornLook from "./components/WornLook";
+import { authHeaders } from "@/lib/apiKey";
 
 type Status = "idle" | "loading" | "done" | "error";
 
@@ -28,7 +29,7 @@ export default function Home() {
     try {
       const res = await fetch("/api/listing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ imageBase64: base64, mediaType: file.type }),
       });
       const data = await res.json();

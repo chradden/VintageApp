@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { authHeaders } from "@/lib/apiKey";
 
 type Status = "idle" | "loading" | "done" | "error";
 
@@ -25,7 +26,7 @@ export default function WornLook({
     try {
       const res = await fetch("/api/worn-look", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ imageBase64, mediaType, description }),
       });
       const data = await res.json();
