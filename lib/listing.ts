@@ -1,8 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-// Default-Modell laut Konzept: aktuelles Claude-Modell mit Vision.
-// Über ANTHROPIC_MODEL überschreibbar (z. B. claude-sonnet-4-6 für geringere Kosten).
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+import { generateJson } from "./llm";
 
 export type ListingMediaType =
   | "image/jpeg"
@@ -92,46 +88,11 @@ export async function generateListing(
   imageBase64: string,
   mediaType: ListingMediaType,
 ): Promise<Listing> {
-  const client = new Anthropic();
-
-  const response = await client.beta.messages.create({
-    betas: ["structured-outputs-2025-11-13"],
-    model: MODEL,
-    max_tokens: 2000,
+  return generateJson<Listing>({
     system: SYSTEM_PROMPT,
-    output_format: {
-      type: "json_schema",
-      schema: LISTING_SCHEMA as unknown as Record<string, unknown>,
-    },
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: mediaType,
-              data: imageBase64,
-            },
-          },
-          {
-            type: "text",
-            text: "Erstelle das vollständige Vinted-Listing für dieses Kleidungsstück.",
-          },
-        ],
-      },
-    ],
+    userText: "Erstelle das vollständige Vinted-Listing für dieses Kleidungsstück.",
+    schema: LISTING_SCHEMA as unknown as Record<string, unknown>,
+    image: { base64: imageBase64, mediaType },
+    maxTokens: 2000,
   });
-
-  if (response.stop_reason === "refusal") {
-    throw new Error("Die Anfrage wurde aus Sicherheitsgründen abgelehnt.");
-  }
-
-  const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Keine verwertbare Antwort vom Modell erhalten.");
-  }
-
-  return JSON.parse(textBlock.text) as Listing;
 }

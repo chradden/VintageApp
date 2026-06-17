@@ -1,6 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8";
+import { generateJson } from "./llm";
 
 // Modul M3 – Preisvorschläge. Bewusst hinter einem Provider-Interface, damit
 // später ein echter Vinted-Vergleichsdaten-Provider eingesteckt werden kann
@@ -45,8 +43,6 @@ const PRICE_SCHEMA = {
 /** LLM-basierter Preis-Provider (Standard bis echte Vergleichsdaten verfügbar sind). */
 export class LlmPriceProvider implements PriceProvider {
   async suggest(input: PriceInput): Promise<PriceSuggestion> {
-    const client = new Anthropic();
-
     const merkmale = [
       `Marke: ${input.marke}`,
       `Kategorie: ${input.kategorie}`,
@@ -57,43 +53,22 @@ export class LlmPriceProvider implements PriceProvider {
       .filter(Boolean)
       .join("\n");
 
-    const response = await client.beta.messages.create({
-      betas: ["structured-outputs-2025-11-13"],
-      model: MODEL,
-      max_tokens: 800,
-      system: `Du schätzt realistische Verkaufspreise für Second-Hand-Mode auf dem deutschen Vinted-Markt.
-Gib eine empfohlene Preisspanne in EUR zurück. Bewerte die Konfidenz deiner Schätzung:
-"hoch" bei bekannter Marke mit stabilem Wiederverkaufswert, "niedrig" bei unbekannter Marke
-oder dünner Datenlage. Dies ist eine Schätzung ohne Live-Vergleichsdaten – weise in der
-Begründung kurz darauf hin.`,
-      output_format: {
-        type: "json_schema",
-        schema: PRICE_SCHEMA as unknown as Record<string, unknown>,
-      },
-      messages: [
-        {
-          role: "user",
-          content: `Schätze den Vinted-Verkaufspreis für diesen Artikel:\n${merkmale}`,
-        },
-      ],
-    });
-
-    if (response.stop_reason === "refusal") {
-      throw new Error("Die Anfrage wurde aus Sicherheitsgründen abgelehnt.");
-    }
-
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
-      throw new Error("Keine verwertbare Antwort vom Modell erhalten.");
-    }
-
-    const raw = JSON.parse(textBlock.text) as {
+    const raw = await generateJson<{
       empfohlen_eur: number;
       min_eur: number;
       max_eur: number;
       konfidenz: Konfidenz;
       begruendung: string;
-    };
+    }>({
+      system: `Du schätzt realistische Verkaufspreise für Second-Hand-Mode auf dem deutschen Vinted-Markt.
+Gib eine empfohlene Preisspanne in EUR zurück. Bewerte die Konfidenz deiner Schätzung:
+"hoch" bei bekannter Marke mit stabilem Wiederverkaufswert, "niedrig" bei unbekannter Marke
+oder dünner Datenlage. Dies ist eine Schätzung ohne Live-Vergleichsdaten – weise in der
+Begründung kurz darauf hin.`,
+      userText: `Schätze den Vinted-Verkaufspreis für diesen Artikel:\n${merkmale}`,
+      schema: PRICE_SCHEMA as unknown as Record<string, unknown>,
+      maxTokens: 800,
+    });
 
     return {
       empfohlenEur: raw.empfohlen_eur,
